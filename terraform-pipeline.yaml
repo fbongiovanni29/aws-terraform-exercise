@@ -1,0 +1,42 @@
+---
+resources:
+  - name: terraform-image
+    type: git
+    source:
+      uri: https://github.com/hashicorp/docker-hub-images.git
+      branch: master
+  - name: aws-terraform-exercise
+    type: git
+    icon: github
+    source:
+      uri: https://github.com/fbongiovanni29/aws-terraform-exercise
+      branch: main
+
+
+jobs:
+  - name: terraform-pipe-line
+    plan:
+      - get: terraform-image
+      - get: aws-terraform-exercise
+    
+      - task: run-terraform
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source: {repository: hashicorp/terraform}
+          inputs:
+            - name: aws-terraform-exercise
+          run:
+              path: sh
+              args: 
+                  - -exc
+                  - |
+                    cd aws-terraform-exercise
+                    terraform init
+                    terraform plan
+                    terraform apply --auto-approve                             
+          params:
+            TF_WORKSPACE: ((terraform-worspace))
+            AWS_ACCESS_KEY_ID: ((access-key))
+            AWS_SECRET_ACCESS_KEY: ((secret-key))
